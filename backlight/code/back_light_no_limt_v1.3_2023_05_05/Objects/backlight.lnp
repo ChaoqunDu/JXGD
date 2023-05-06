@@ -1,0 +1,5 @@
+".\Objects\main.obj",
+".\Objects\user.obj",
+".\Objects\time.obj" 
+TO ".\Objects\backlight" 
+PRINT(".\Listings\backlight.m51") RAMSIZE(256) 

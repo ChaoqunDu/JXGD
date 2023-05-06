@@ -1,0 +1,155 @@
+C51 COMPILER V9.60.0.0   TIME                                                              12/21/2022 14:28:03 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE TIME
+OBJECT MODULE PLACED IN .\Objects\time.obj
+COMPILER INVOKED BY: D:\keil\C51\BIN\C51.EXE mycode\time.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\
+                    -time.lst) OBJECT(.\Objects\time.obj)
+
+line level    source
+
+   1          #include "time.h"
+   2          
+   3          
+   4          bit f_cmp_10ms = 0;
+   5          bit f_screen_10ms = 0;
+   6          bit f_10us = 0;
+   7          bit f_pwm_in_10ms = 0;
+   8          
+   9          
+  10          s16 screen_pwm_duty = 80;
+  11          s16 cmp_pwm_duty = 80;
+  12          
+  13          
+  14          /******************************
+  15          屏幕背光PWM输出
+  16          *******************************/
+  17          void screen_pwm_out(void)
+  18          {
+  19   1              static s16 screen_pwm_cnt = 0;
+  20   1              
+  21   1              screen_pwm_cnt++;
+  22   1              
+  23   1              if(screen_pwm_duty == 0)
+  24   1              {
+  25   2                      screen_pwm_pin = 0;
+  26   2              }
+  27   1              else if(screen_pwm_duty == SCREEN_PWM_CYCLE)
+  28   1              {
+  29   2                      screen_pwm_pin = 1;
+  30   2              }
+  31   1              else
+  32   1              {
+  33   2                      if(screen_pwm_cnt < screen_pwm_duty)
+  34   2                      {
+  35   3                              screen_pwm_pin = 1;
+  36   3                      }
+  37   2                      else if(screen_pwm_cnt < SCREEN_PWM_CYCLE)
+  38   2                      {
+  39   3                              screen_pwm_pin = 0;
+  40   3                      }
+  41   2                      else
+  42   2                      {
+  43   3                              screen_pwm_cnt = 0;     
+  44   3                              screen_pwm_pin = 1;
+  45   3                      }
+  46   2              }
+  47   1      }
+  48          
+  49          /******************************
+  50          比较器PWM输出
+  51          *******************************/
+  52          void cmp_pwm_out(void)
+  53          {
+  54   1              static s16 cmp_pwm_cnt = 0;
+C51 COMPILER V9.60.0.0   TIME                                                              12/21/2022 14:28:03 PAGE 2   
+
+  55   1              
+  56   1              cmp_pwm_cnt++;
+  57   1              if(cmp_pwm_duty == 0)
+  58   1              {
+  59   2                      cmp_pwm_pin = 0;
+  60   2              }
+  61   1              else if(cmp_pwm_duty == CMP_PWM_CYCLE)
+  62   1              {
+  63   2                      cmp_pwm_pin = 1;
+  64   2              }
+  65   1              else
+  66   1              {
+  67   2                      if(cmp_pwm_cnt < cmp_pwm_duty)
+  68   2                      {
+  69   3                              cmp_pwm_pin = 1;                
+  70   3                      }
+  71   2                      else if(cmp_pwm_cnt < CMP_PWM_CYCLE)
+  72   2                      {
+  73   3                              cmp_pwm_pin = 0;                        
+  74   3                      }
+  75   2                      else
+  76   2                      {
+  77   3                              cmp_pwm_cnt = 0;
+  78   3                              cmp_pwm_pin = 1;
+  79   3                      }
+  80   2              }       
+  81   1      }
+  82          
+  83          void TM0_Isr() interrupt 1
+  84          {
+  85   1              cmp_pwm_out();
+  86   1              screen_pwm_out();
+  87   1              f_10us = 1;
+  88   1      }
+  89          
+  90          void TM1_Isr() interrupt 3
+  91          {       
+  92   1              f_cmp_10ms = 1; 
+  93   1              f_screen_10ms = 1;
+  94   1              f_pwm_in_10ms = 1;
+  95   1      }
+  96          
+  97          
+  98          /******************************
+  99          tim0设置为模式2，8位自动重装模式
+ 100          用于测试输入PWM
+ 101          *******************************/
+ 102          void TIM0_Init(void)
+ 103          {
+ 104   1              set_bit(TMOD,1);//10设置为8位自动重装
+ 105   1              reset_bit(TMOD,0);      
+ 106   1              TL0 = 0XEC;
+ 107   1              TH0 = 0XEC;//配置为10us定时     
+ 108   1              TR0 = 1;        
+ 109   1              ET0 = 1;
+ 110   1              EA = 1;
+ 111   1      }
+ 112          
+ 113          /*******************************
+ 114          tim1设置为模式0,16位自动装载
+ 115          用于产生PWM
+ 116          ********************************/
+C51 COMPILER V9.60.0.0   TIME                                                              12/21/2022 14:28:03 PAGE 3   
+
+ 117          void TIM1_Init(void)
+ 118          {
+ 119   1              //reset_bit(TMOD,5);
+ 120   1              //reset_bit(TMOD,4);    
+ 121   1              TL1 = 0xE0;//配置为1ms定时
+ 122   1              TH1 = 0xB1;
+ 123   1              TR1 = 1;
+ 124   1              ET1 = 1;
+ 125   1              EA = 1; 
+ 126   1      }
+ 127          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    207    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      4    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
